@@ -7,6 +7,7 @@
     <routing>client</routing>
     <replication-factor>2</replication-factor>
     <required-reads>1</required-reads>
+    <preferred-reads>2</preferred-reads>
     <required-writes>1</required-writes>
     <key-serializer>
       <type>string</type>
