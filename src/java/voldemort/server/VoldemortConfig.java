@@ -112,6 +112,7 @@ public class VoldemortConfig implements Serializable {
     private boolean enableJmx;
     private boolean enableVerboseLogging;
     private boolean enableStatTracking;
+    private boolean enableNodeAvailabilityTracking;
     private boolean enableServerRouting;
 
     private List<String> storageConfigurations;
@@ -129,6 +130,7 @@ public class VoldemortConfig implements Serializable {
 
     private int retentionCleanupFirstStartTimeInHour;
     private int retentionCleanupScheduledPeriodInHour;
+    private int nodeAvailabilityCheckInterval;
 
     public VoldemortConfig(int nodeId, String voldemortHome) {
         this(new Props().with("node.id", nodeId).with("voldemort.home", voldemortHome));
@@ -212,6 +214,12 @@ public class VoldemortConfig implements Serializable {
         this.enableSlop = props.getBoolean("slop.enable", true);
         this.enableVerboseLogging = props.getBoolean("enable.verbose.logging", true);
         this.enableStatTracking = props.getBoolean("enable.stat.tracking", true);
+        this.enableNodeAvailabilityTracking = props.getBoolean("enable.node.availability.tracking",
+                                                               false);
+        // 5 second default (only applies if enableNodeAvailabilityTracking is
+        // true)
+        this.nodeAvailabilityCheckInterval = props.getInt("node.availability.check.interval",
+                                                          1000 * 5);
         this.enableServerRouting = props.getBoolean("enable.server.routing", true);
 
         this.pusherPollMs = props.getInt("pusher.poll.ms", 2 * 60 * 1000);
@@ -409,10 +417,10 @@ public class VoldemortConfig implements Serializable {
      * value, irrespective of total utilization.
      * 
      * <ul>
-     * <li> property: "bdb.cleaner.minFileUtilization"</li>
-     * <li> default: 5</li>
-     * <li> minimum: 0</li>
-     * <li> maximum: 50</li>
+     * <li>property: "bdb.cleaner.minFileUtilization"</li>
+     * <li>default: 5</li>
+     * <li>minimum: 0</li>
+     * <li>maximum: 50</li>
      * </ul>
      */
     public int getBdbCleanerMinFileUtilization() {
@@ -430,10 +438,10 @@ public class VoldemortConfig implements Serializable {
      * this value.
      * 
      * <ul>
-     * <li> property: "bdb.cleaner.minUtilization"</li>
-     * <li> default: 50</li>
-     * <li> minimum: 0</li>
-     * <li> maximum: 90</li>
+     * <li>property: "bdb.cleaner.minUtilization"</li>
+     * <li>default: 50</li>
+     * <li>minimum: 0</li>
+     * <li>maximum: 90</li>
      * </ul>
      */
     public int getBdbCleanerMinUtilization() {
@@ -522,6 +530,14 @@ public class VoldemortConfig implements Serializable {
 
     public boolean isAdminServerEnabled() {
         return enableAdminServer;
+    }
+
+    public void setNodeAvailabilityTrackingEnabled(boolean enableNodeAvailabilityTracking) {
+        this.enableNodeAvailabilityTracking = enableNodeAvailabilityTracking;
+    }
+
+    public boolean isNodeAvailabilityTrackingEnabled() {
+        return enableNodeAvailabilityTracking;
     }
 
     public int getStreamMaxReadBytesPerSec() {
@@ -862,5 +878,13 @@ public class VoldemortConfig implements Serializable {
 
     public void setRetentionCleanupScheduledPeriodInHour(int retentionCleanupScheduledPeriodInHour) {
         this.retentionCleanupScheduledPeriodInHour = retentionCleanupScheduledPeriodInHour;
+    }
+
+    public int getNodeAvailabilityCheckInterval() {
+        return nodeAvailabilityCheckInterval;
+    }
+
+    public void setNodeAvailabilityCheckInterval(int nodeAvailabilityCheckInterval) {
+        this.nodeAvailabilityCheckInterval = nodeAvailabilityCheckInterval;
     }
 }

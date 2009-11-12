@@ -91,9 +91,28 @@ public class Cluster implements Serializable {
         return node;
     }
 
+    @JmxOperation(impact = MBeanOperationInfo.INFO, description = "Gets status of individual nodes in the cluster.")
+    public String getNodesInfo() {
+        StringBuilder sb = new StringBuilder();
+        for(Node node: this.nodesById.values()) {
+            NodeStatus nodeStatus = node.getStatus();
+            sb.append(String.format("%s %s\n", node, nodeStatus));
+        }
+        return sb.toString();
+    }
+
     @JmxGetter(name = "numberOfNodes", description = "The number of nodes in the cluster.")
     public int getNumberOfNodes() {
         return nodesById.size();
+    }
+
+    @JmxGetter(name = "numberOfAvailableNodes", description = "Nodes of cluster currently available")
+    public int getNumberOfAvailableNodes() {
+        int available = 0;
+        for(Node node: this.nodesById.values())
+            if(!node.getStatus().isUnavailable())
+                available += 1;
+        return available;
     }
 
     @JmxOperation(impact = MBeanOperationInfo.INFO, description = "The time since last marked unavailable")

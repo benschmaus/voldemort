@@ -223,6 +223,11 @@ public class StorageService extends AbstractService {
                                                                voldemortConfig.getRoutingTimeoutMs(),
                                                                voldemortConfig.getClientNodeBannageMs(),
                                                                SystemTime.INSTANCE);
+
+        if(voldemortConfig.isNodeAvailabilityTrackingEnabled())
+            scheduleClusterMonitorJob(nodeStores,
+                                      voldemortConfig.getNodeAvailabilityCheckInterval());
+
         routedStore = new InconsistencyResolvingStore<ByteArray, byte[]>(routedStore,
                                                                          new VectorClockInconsistencyResolver<byte[]>());
         this.storeRepository.addRoutedStore(routedStore);
@@ -268,6 +273,30 @@ public class StorageService extends AbstractService {
                                 voldemortConfig.getRetentionCleanupScheduledPeriodInHour()
                                         * Time.MS_PER_HOUR);
 
+    }
+
+    private void scheduleClusterMonitorJob(final Map<Integer, Store<ByteArray, byte[]>> nodeStores,
+                                           final int availabilityCheckInterval) {
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.add(Calendar.MILLISECOND, availabilityCheckInterval);
+        Date startTime = cal.getTime();
+        this.scheduler.schedule(new Runnable() {
+
+            public void run() {
+                for(Integer nodeId: nodeStores.keySet()) {
+                    Store<ByteArray, byte[]> s = nodeStores.get(nodeId);
+                    Node n = metadata.getCurrentCluster().getNodeById(nodeId);
+                    try {
+                        s.get(new ByteArray(new byte[0]));
+                        n.getStatus().setAvailable();
+                    } catch(VoldemortException e) {
+                        n.getStatus().setUnavailable();
+                    }
+                }
+                if(voldemortConfig.isNodeAvailabilityTrackingEnabled())
+                    scheduleClusterMonitorJob(nodeStores, availabilityCheckInterval);
+            }
+        }, startTime);
     }
 
     private StorageEngine<ByteArray, byte[]> getStorageEngine(String name, String type) {

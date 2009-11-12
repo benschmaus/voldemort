@@ -87,7 +87,8 @@ public class NodeStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "Status(" + (isAvailable ? "available" : "down") + ", " + new Date(lastChecked);
+        return "Status(" + (isAvailable ? "available" : "down") + ", " + new Date(lastChecked)
+               + ")";
     }
 
 }
