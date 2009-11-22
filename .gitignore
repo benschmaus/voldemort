@@ -1,5 +1,13 @@
 classes
 dist
 *~
-config/*/data
-config/*/*/data
+*/data
+*.iml
+*.ipr
+*.iws
+*#
+.#*
+node.id
+rebalancing.slave.list
+server.state
+.version
